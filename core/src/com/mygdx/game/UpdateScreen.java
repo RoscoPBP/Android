@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -25,28 +26,26 @@ import com.badlogic.gdx.Net;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.concurrent.CompletableFuture;
 
-
-public class PerfilScreen extends ScreenAdapter {
+public class UpdateScreen extends ScreenAdapter {
     private final MyGdxGame game;
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
     private final BitmapFont font;
     private final Stage stage;
-    private boolean waitingForResponse = false;
     private TextField nombreTextField;
     private TextField telefonoTextField;
     private TextField emailTextField;
-    private String avatar;
+    public String name , apiKey, phoneNumber, email ,avatar;
 
-    public PerfilScreen(MyGdxGame game) {
+
+
+    public UpdateScreen(MyGdxGame game) {
         this.game = game;
         camera = new OrthographicCamera();
         batch = new SpriteBatch();
@@ -55,6 +54,7 @@ public class PerfilScreen extends ScreenAdapter {
 
         // Configurar el stage para los textfields y la barra de aplicación
         stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        cargarRespuestaJSON();
 
         // Crear la barra de aplicación
         Table appBarTable = new Table();
@@ -76,11 +76,12 @@ public class PerfilScreen extends ScreenAdapter {
 
 
         // Texto "Login" centrado
-        Label titleLabel = new Label("Login", new Label.LabelStyle(font, Color.BLACK));
+        Label titleLabel = new Label("Update", new Label.LabelStyle(font, Color.BLACK));
         appBarTable.add(backButton).size(100, 100).padRight(20);
         appBarTable.add(titleLabel).expandX().center();
 
         stage.addActor(appBarTable);
+
 
 
         String[] texturePaths = {"lol/0.png", "lol/16.png", "lol/17.png", "lol/20.png"};
@@ -130,7 +131,11 @@ public class PerfilScreen extends ScreenAdapter {
 
 
 
+
+
         // Botón de enviar
+
+
         Table enviarTable = new Table();
         enviarTable.setWidth(stage.getWidth());
         enviarTable.setFillParent(true);
@@ -146,8 +151,10 @@ public class PerfilScreen extends ScreenAdapter {
                 String nombre = nombreTextField.getText();
                 String telefono = telefonoTextField.getText();
                 String email = emailTextField.getText();
+                Gdx.app.log("Solicitud HTTP", avatar);
 
                 JsonValue json = new JsonValue(JsonValue.ValueType.object);
+                json.addChild("api_key", new JsonValue(apiKey));
                 json.addChild("name", new JsonValue(nombre));
                 json.addChild("email", new JsonValue(email));
                 json.addChild("phone_number", new JsonValue(telefono));
@@ -156,7 +163,7 @@ public class PerfilScreen extends ScreenAdapter {
                 String jsonData = json.toJson(JsonWriter.OutputType.json);
 
                 HttpRequest request = new HttpRequest(HttpMethods.POST);
-                request.setUrl("https://roscodrom4.ieti.site/api/user/register");
+                request.setUrl("https://roscodrom4.ieti.site/api/user/update");
                 request.setContent(jsonData);
                 request.setHeader("Content-Type", "application/json");
 
@@ -168,13 +175,10 @@ public class PerfilScreen extends ScreenAdapter {
                             String responseData = httpResponse.getResultAsString();
                             JsonValue jsonResponse = new JsonReader().parse(responseData);
                             String status = jsonResponse.getString("status");
-
                             if (status.equals("OK")){
-                                JsonValue dataString = jsonResponse.get("data");
-                                String apikey = dataString.getString("api_key");
-                                guardarRespuestaEnJSON(apikey, jsonData);
+                                guardarRespuestaEnJSON(apiKey, jsonData);
                                 Gdx.app.log("Solicitud HTTP", "La solicitud fue exitosa");
-
+                                cargarRespuestaJSON();
                             }else {
                                 Gdx.app.error("Solicitud HTTP", "status error");
 
@@ -230,12 +234,12 @@ public class PerfilScreen extends ScreenAdapter {
         Label emailLabel = new Label("Email:", new Label.LabelStyle(font, Color.BLACK));
 
         // Textfield para el nombre
-        nombreTextField = new TextField("", textFieldStyle);
+        nombreTextField = new TextField(name, textFieldStyle);
         nombreTextField.getStyle().background.setLeftWidth(10);
         nombreTextField.setSize(textFieldWidth, textFieldHeight);
 
         // Textfield para el teléfono
-        telefonoTextField = new TextField("", textFieldStyle);
+        telefonoTextField = new TextField(phoneNumber, textFieldStyle);
         telefonoTextField.getStyle().background.setLeftWidth(10);
         telefonoTextField.setSize(textFieldWidth, textFieldHeight);
 // Establecer el filtro de entrada para permitir solo caracteres de texto
@@ -247,7 +251,7 @@ public class PerfilScreen extends ScreenAdapter {
         });
 
         // Textfield para el correo electrónico
-        emailTextField = new TextField("", textFieldStyle);
+        emailTextField = new TextField(email, textFieldStyle);
         emailTextField.getStyle().background.setLeftWidth(10);
         emailTextField.setSize(textFieldWidth, textFieldHeight);
 
@@ -286,18 +290,37 @@ public class PerfilScreen extends ScreenAdapter {
         font.dispose();
         stage.dispose();
     }
-    private void guardarRespuestaEnJSON(String apiKey, String jsonData) {
-        JsonValue Data = new JsonReader().parse(jsonData);
+    private void cargarRespuestaJSON() {
+        FileHandle jsonFile = Gdx.files.local("respuesta.json");
+        if (jsonFile.exists()) {
+            String jsonData = jsonFile.readString();
+            JsonValue jsonResponse = new JsonReader().parse(jsonData);
+            apiKey = jsonResponse.getString("api_key");
+            name = jsonResponse.getString("name");
+            email = jsonResponse.getString("email");
+            phoneNumber = jsonResponse.getString("phone_number");
+            avatar = jsonResponse.getString("avatar");
+        } else {
+            apiKey = "";
+            name = "";
+            email = "";
+            phoneNumber = "";
+            avatar = "";
+        }
+    }
 
-        String name = Data.getString("name");
-        String email = Data.getString("email");
-        String Phone = Data.getString("phone_number");
+    private void guardarRespuestaEnJSON(String apiKey, String jsonData) {
+        // Actualizar las variables con los nuevos valores del JSON
+        JsonValue Data = new JsonReader().parse(jsonData);
+        name = Data.getString("name");
+        email = Data.getString("email");
+        phoneNumber = Data.getString("phone_number");
 
         JsonValue jsonToSave = new JsonValue(JsonValue.ValueType.object);
         jsonToSave.addChild("api_key", new JsonValue(apiKey));
         jsonToSave.addChild("name", new JsonValue(name));
         jsonToSave.addChild("email", new JsonValue(email));
-        jsonToSave.addChild("phone_number", new JsonValue(Phone));
+        jsonToSave.addChild("phone_number", new JsonValue(phoneNumber));
         jsonToSave.addChild("avatar",new JsonValue(avatar));
 
         String jsonToSaveString = jsonToSave.toJson(JsonWriter.OutputType.json);

@@ -1,0 +1,22 @@
+{
+  "TextFieldStyle": {
+    "default": {
+      "font": "default-font",
+      "fontColor": [1, 1, 1, 1],
+      "background": "text-field"
+    }
+  },
+  "TextButtonStyle": {
+    "default": {
+      "up": "button",
+      "down": "button-pressed",
+      "font": "default-font",
+      "fontColor": [1, 1, 1, 1]
+    }
+  },
+  "BitmapFont": {
+    default-font: {
+      "file": "default-font.fnt"
+    }
+  }
+}
