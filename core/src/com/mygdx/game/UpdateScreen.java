@@ -53,7 +53,7 @@ public class UpdateScreen extends ScreenAdapter {
         font.getData().setScale(5);
 
         // Configurar el stage para los textfields y la barra de aplicación
-        stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        stage = new Stage(AppConfig.VIEWPORT);
         cargarRespuestaJSON();
 
         // Crear la barra de aplicación

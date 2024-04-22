@@ -54,7 +54,7 @@ public class PerfilScreen extends ScreenAdapter {
         font.getData().setScale(5);
 
         // Configurar el stage para los textfields y la barra de aplicación
-        stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        stage = new Stage(AppConfig.VIEWPORT);
 
         // Crear la barra de aplicación
         Table appBarTable = new Table();

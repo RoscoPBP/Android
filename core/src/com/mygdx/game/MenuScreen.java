@@ -34,7 +34,7 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        stage = new Stage(new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        stage = new Stage(AppConfig.VIEWPORT);
         Gdx.input.setInputProcessor(stage);
 
         table = new Table();

@@ -5,14 +5,13 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.github.czyzby.websocket.CommonWebSockets;
 import com.mygdx.game.MyGdxGame;
 
-// Please note that on macOS your application needs to be started with the -XstartOnFirstThread JVM argument
 public class DesktopLauncher {
-	public static void main (String[] arg) {
+	public static void main(String[] arg) {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		CommonWebSockets.initiate();
 		config.setForegroundFPS(60);
-		config.setWindowedMode(480, 800);
-		config.setTitle("My GDX Game");
+		config.setWindowedMode(AppConfig.WINDOW_WIDTH, AppConfig.WINDOW_HEIGHT);
+		config.setTitle(AppConfig.TITLE);
 		new Lwjgl3Application(new MyGdxGame(), config);
 	}
 }
