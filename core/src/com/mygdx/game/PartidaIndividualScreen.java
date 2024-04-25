@@ -156,4 +156,5 @@ public class PartidaIndividualScreen extends ScreenAdapter {
     public void dispose() {
         stage.dispose();
     }
+    //finn
 }
