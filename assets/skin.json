@@ -1,0 +1,16 @@
+{
+  "com.badlogic.gdx.graphics.Color": {
+    "white": { "hex": "ffffff" },
+    "black": { "hex": "000000" },
+    "red": { "hex": "ff0000" },
+    "green": { "hex": "00ff00" },
+    "blue": { "hex": "0000ff" }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
+    "default": {
+      "font": "default-font",
+      "up": "default-round",
+      "down": "default-round-down"
+    }
+  }
+}

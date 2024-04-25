@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -17,8 +16,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 public class MenuScreen extends ScreenAdapter {
     private Game game;
@@ -41,12 +38,13 @@ public class MenuScreen extends ScreenAdapter {
         table.setWidth(stage.getWidth());
         table.setFillParent(true);
         table.align(Align.top);
+        table.top().padTop(20);
 
         // Agregar título
-        BitmapFont titel = new BitmapFont();
-        titel.getData().setScale(6);
-        Label titleLabel = new Label(titulo, new Label.LabelStyle(titel, Color.WHITE));
-        table.add(titleLabel).padBottom(150).row();
+        BitmapFont titleFont = new BitmapFont();
+        titleFont.getData().setScale(6);
+        Label titleLabel = new Label(titulo, new Label.LabelStyle(titleFont, Color.WHITE));
+        table.add(titleLabel).padBottom(150).padTop(150).row();
 
         // Ajustar tamaño de la fuente para los botones
         BitmapFont buttonFont = new BitmapFont();
@@ -122,12 +120,13 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0, 0, 1, 1); // Cambiar a azul
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }
+
 
     @Override
     public void resize(int width, int height) {

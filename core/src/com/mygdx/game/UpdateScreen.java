@@ -52,6 +52,11 @@ public class UpdateScreen extends ScreenAdapter {
         font = new BitmapFont();
         font.getData().setScale(5);
 
+        Label.LabelStyle labelStyle = game.skin.get(Label.LabelStyle.class);
+        TextField.TextFieldStyle textFieldStyle = game.skin.get(TextField.TextFieldStyle.class);
+        labelStyle.font.getData().setScale(6);
+        textFieldStyle.font.getData().setScale(6);
+
         // Configurar el stage para los textfields y la barra de aplicación
         stage = new Stage(AppConfig.VIEWPORT);
         cargarRespuestaJSON();
@@ -94,7 +99,7 @@ public class UpdateScreen extends ScreenAdapter {
         imagenTable.setWidth(stage.getWidth());
         imagenTable.setFillParent(true);
         imagenTable.align(Align.bottom);
-        imagenTable.padBottom(350).padLeft(10);
+        imagenTable.padBottom(375).padLeft(10);
 
 // Bucle for para crear los botones
         for (int i = 0; i < texturePaths.length; i++) {
@@ -214,32 +219,26 @@ public class UpdateScreen extends ScreenAdapter {
         table.setWidth(stage.getWidth());
         table.setFillParent(true); // La tabla ocupa todo el espacio del stage
         table.align(Align.top);
-        table.top().padTop(200);
+        table.top().padTop(180);
         // Establecer espacio entre columnas y filas
         table.defaults().pad(20);// Alineación y separación superior
 
-        // Crear el estilo para los textfields
-        TextField.TextFieldStyle textFieldStyle = new TextField.TextFieldStyle();
-        textFieldStyle.font = font;
-        textFieldStyle.fontColor = Color.BLACK; // Color del texto
-        textFieldStyle.background = new TextureRegionDrawable(new TextureRegion(new Texture("textfield_bg.png"))); // Fondo del textfield
 
         // Tamaño de los textfields
         float textFieldWidth = 600; // Ancho
-        float textFieldHeight = 100; // Altura
+        float textFieldHeight = 150; // Altura
 
         // Crear las labels
-        Label nameLabel = new Label("Nombre:", new Label.LabelStyle(font, Color.BLACK));
-        Label telefonoLabel = new Label("Teléfono:", new Label.LabelStyle(font, Color.BLACK));
-        Label emailLabel = new Label("Email:", new Label.LabelStyle(font, Color.BLACK));
-
+        Label nameLabel = new Label("Nombre:", labelStyle);
+        Label telefonoLabel = new Label("Teléfono:", labelStyle);
+        Label emailLabel = new Label("Email:", labelStyle);
         // Textfield para el nombre
-        nombreTextField = new TextField(name, textFieldStyle);
+        nombreTextField = new TextField("", textFieldStyle);
         nombreTextField.getStyle().background.setLeftWidth(10);
         nombreTextField.setSize(textFieldWidth, textFieldHeight);
 
         // Textfield para el teléfono
-        telefonoTextField = new TextField(phoneNumber, textFieldStyle);
+        telefonoTextField = new TextField("", textFieldStyle);
         telefonoTextField.getStyle().background.setLeftWidth(10);
         telefonoTextField.setSize(textFieldWidth, textFieldHeight);
 // Establecer el filtro de entrada para permitir solo caracteres de texto
@@ -251,7 +250,7 @@ public class UpdateScreen extends ScreenAdapter {
         });
 
         // Textfield para el correo electrónico
-        emailTextField = new TextField(email, textFieldStyle);
+        emailTextField = new TextField("", textFieldStyle);
         emailTextField.getStyle().background.setLeftWidth(10);
         emailTextField.setSize(textFieldWidth, textFieldHeight);
 
@@ -271,10 +270,9 @@ public class UpdateScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.5f, 0.5f, 0.5f, 1);
+        Gdx.gl.glClearColor(0, 0, 1, 1); // Cambiar a azul
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Actualizar y dibujar el stage
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }
