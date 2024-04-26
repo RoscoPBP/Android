@@ -4,35 +4,134 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
 
 public class PartidaIndividualScreen extends ScreenAdapter {
     private final MyGdxGame game;
     private Stage stage;
+    private final BitmapFont font;
     private OrthographicCamera camera;
     private int numButtons = 10; // Número inicial de botones
     private float buttonSize = 120; // Tamaño inicial de los botones
     private Label labelLetras;
 
+    private GlyphLayout glyphLayout;
+
+    private Table listas ;
+    private ScrollPane scrollPane;
+    private ArrayList<String> palabrasEnviadas = new ArrayList<>(); // Lista de palabras enviadas
+    private final int NUMERO_PALABRAS_VISIBLES = 4;
+
+    private ArrayList<Character> vocales = new ArrayList<>(Arrays.asList('A', 'E', 'I', 'O', 'U'));
+    private ArrayList<Character> consonantesMuyUsadas = new ArrayList<>(Arrays.asList('L', 'N', 'S', 'T', 'R'));
+    private ArrayList<Character> consonantesPocoUsadas = new ArrayList<>(Arrays.asList('B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'P', 'Q', 'V', 'W', 'X', 'Y', 'Z'));
+    private Random random = new Random();
+
     public PartidaIndividualScreen(MyGdxGame game) {
         this.game = game;
         camera = new OrthographicCamera();
         stage = new Stage(new ScreenViewport(camera));
+        font = new BitmapFont();
+        font.getData().setScale(5);
         Gdx.input.setInputProcessor(stage);
+
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+
+
+        Table appBarTable = new Table();
+        appBarTable.setWidth(stage.getWidth());
+        appBarTable.setFillParent(true);
+        appBarTable.align(Align.top);
+        appBarTable.padTop(10).padLeft(10);
+
+        // Botón de retroceso
+        Texture backButtonTexture = new Texture("back_button.png");
+        ImageButton backButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(backButtonTexture)));
+        backButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                game.setScreen(new MenuScreen(game));
+                dispose();
+            }
+        });
+
+
+        // Texto "Login" centrado
+        Label titleLabel = new Label("", new Label.LabelStyle(font, Color.BLACK));
+        appBarTable.add(backButton).size(100, 100).padRight(20);
+        appBarTable.add(titleLabel).expandX().center();
+
+        stage.addActor(appBarTable);
+
+
+
+
+        listas = new Table();
+        scrollPane = new ScrollPane(listas, game.skin); // Asignar tu skin al ScrollPane
+
+        listas.setFillParent(true); // Para que el ScrollPane ocupe todo el espacio del Stage
+
+        scrollPane.getStyle().background = null;
+        scrollPane.setWidth(stage.getWidth());
+        scrollPane.setFadeScrollBars(true);
+
+        scrollPane.setScrollingDisabled(true, false); // Deshabilita el desplazamiento en la dirección x
+        scrollPane.setForceScroll(false, true); // Fuerza el desplazamiento solo en la dirección y
+        scrollPane.setScrollBarPositions(false,false);
+
+
+        Table t = new Table();
+        t.setFillParent(true);
+        t.align(Align.top);
+        t.setWidth(stage.getWidth());
+        t.padTop(200);
+
+        t.add(scrollPane);
+
+        stage.addActor(t);
+
 
         inicializarRosco();
         inicializarLabelLetras();
     }
+
+    private void actualizarTablaLetras() {
+        // Limpiar la tabla antes de agregar nuevas palabras
+        listas.clear();
+
+        // Obtener el índice de la última palabra añadida
+        int lastIndex = palabrasEnviadas.size() - 1;
+
+        // Calcular el índice inicial en función del número de palabras visibles
+        int startIndex = Math.max(lastIndex - NUMERO_PALABRAS_VISIBLES + 1, 0);
+        Label.LabelStyle labelStyle = game.skin.get(Label.LabelStyle.class);
+        // Agregar las palabras enviadas a la tabla
+        for (int i = lastIndex; i >= startIndex; i--) {
+            String palabra = palabrasEnviadas.get(i);
+            Label label = new Label(palabra,labelStyle);
+            //label.setWrap(true);
+            label.setWidth(800);
+            label.setHeight(200);// Ancho fijo para evitar que el texto se expanda horizontalmente
+            listas.add(label).align(Align.center).pad(10).row();
+        }
+    }
+
 
     private void inicializarRosco() {
         float centerX = Gdx.graphics.getWidth() / 2f;
@@ -57,7 +156,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
             // Crear una textura circular como fondo del botón para el estado "down"
             Pixmap pixmapDown = new Pixmap((int) buttonSize, (int) buttonSize, Pixmap.Format.RGBA8888);
-            pixmapDown.setColor(Color.RED);
+            pixmapDown.setColor(colorFromHexString("f79b08"));
             pixmapDown.fillCircle((int) (buttonSize / 2f), (int) (buttonSize / 2f), (int) (buttonSize / 2f));
             Texture textureDown = new Texture(pixmapDown);
             pixmapDown.dispose();
@@ -66,6 +165,8 @@ public class PartidaIndividualScreen extends ScreenAdapter {
             // Asignar las regiones de textura a los estilos de botón
             buttonStyle.up = upDrawable;
             buttonStyle.down = downDrawable;
+            // Asignar color de fuente negro
+            buttonStyle.fontColor = colorFromHexString("1630BE");
 
             TextButton button = new TextButton(letra, buttonStyle);
             button.setSize(buttonSize, buttonSize);
@@ -89,11 +190,12 @@ public class PartidaIndividualScreen extends ScreenAdapter {
                 }
             });
 
-
             stage.addActor(button);
         }
 
-        // Agregar el botón "Enviar" dentro del rosco
+
+
+    // Agregar el botón "Enviar" dentro del rosco
         TextButton.TextButtonStyle enviarButtonStyle = new TextButton.TextButtonStyle(game.skin.get("default", TextButton.TextButtonStyle.class));
         enviarButtonStyle.up = new TextureRegionDrawable(game.skin.getRegion("default-round"));
         enviarButtonStyle.down = new TextureRegionDrawable(game.skin.getRegion("default-round-down"));
@@ -108,6 +210,10 @@ public class PartidaIndividualScreen extends ScreenAdapter {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 // Aquí puedes manejar la lógica cuando se hace clic en el botón "Enviar"
+                String palabra  = String.valueOf(labelLetras.getText());
+                palabrasEnviadas.add(palabra);
+                labelLetras.setText("");
+                actualizarTablaLetras();
                 System.out.println("Botón 'Enviar' presionado");
             }
         });
@@ -131,13 +237,60 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
         stage.addActor(table); // Agregar la tabla al stage
     }
+
+
     private String obtenerLetraAleatoria() {
-        // Retorna una letra aleatoria (puedes personalizar esto según tus necesidades)
-        char letra = (char) ('A' + (int) (Math.random() * 26));
+        char letra;
+
+        // Generar un número aleatorio entre 0 y 1 (inclusive)
+        int randomType = random.nextInt(2); // 0 o 1
+
+        // Si el número aleatorio es 1 o quedan menos de 2 vocales, elegir una consonante
+        if (randomType == 1 || vocales.size() < 2) {
+            // Elegir entre consonantes muy usadas y poco usadas
+            if (consonantesMuyUsadas.size() >= 5) {
+                int index = random.nextInt(consonantesMuyUsadas.size());
+                letra = consonantesMuyUsadas.remove(index);
+            } else {
+                int index = random.nextInt(consonantesPocoUsadas.size());
+                letra = consonantesPocoUsadas.remove(index);
+            }
+        }
+        // Si el número aleatorio es 0 y quedan al menos 2 vocales, elegir una vocal
+        else {
+            int index = random.nextInt(vocales.size());
+            letra = vocales.remove(index);
+        }
+
         return String.valueOf(letra);
     }
 
+    private Color colorFromHex(long hex)
+    {
+        float a = (hex & 0xFF000000L) >> 24;
+        float r = (hex & 0xFF0000L) >> 16;
+        float g = (hex & 0xFF00L) >> 8;
+        float b = (hex & 0xFFL);
 
+        return new Color(r/255f, g/255f, b/255f, a/255f);
+    }
+
+    private Color colorFromHexString(String s)
+    {
+        // Eliminar el signo "#" si está presente
+        if(s.startsWith("#"))
+            s = s.substring(1);
+
+        // Convertir de la forma "#RRGGBB" a "AARRGGBB"
+        String hexString = "FF" + s;
+
+        // Asegurarse de que la longitud sea 8 (AARRGGBB)
+        if(hexString.length() != 8)
+            throw new IllegalArgumentException("String must have the form #RRGGBB");
+
+        // Convertir a Color
+        return colorFromHex(Long.parseLong(hexString, 16));
+    }
 
     @Override
     public void render(float delta) {
