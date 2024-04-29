@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -29,10 +30,12 @@ public class PartidaIndividualScreen extends ScreenAdapter {
     private OrthographicCamera camera;
     private int numButtons = 10; // Número inicial de botones
     private float buttonSize = 120; // Tamaño inicial de los botones
-    private Label labelLetras;
+    private Label labelLetras, titleLabel;
 
 
     private int puntos = 0;
+    Sound sonidoTrue = Gdx.audio.newSound(Gdx.files.internal("acierto.wav"));
+    Sound sonidoFalse = Gdx.audio.newSound(Gdx.files.internal("fallo.wav"));
 
     private Table listas ;
     private ScrollPane scrollPane;
@@ -71,7 +74,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
 
         // Texto "Login" centrado
-        Label titleLabel = new Label("puntos: "+ puntos, new Label.LabelStyle(font, Color.BLACK));
+        titleLabel = new Label("puntos: "+ puntos, new Label.LabelStyle(font, Color.BLACK));
         appBarTable.add(backButton).size(100, 100).padRight(20);
         appBarTable.add(titleLabel).expandX().right().padRight(50);
 
@@ -220,10 +223,15 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
                 Boolean comprovar = Funciones.findWord(fileHandle, targetWord);
 
-                if (comprovar){
+                if (comprovar) {
                     palabrasEnviadas.add(palabra);
-                    puntos = puntos+ 10;
-                    System.out.println("aaaaaaaaaaa");
+                    puntos += 10;
+                    titleLabel.setText("puntos: " + puntos);
+                    sonidoTrue.play(); // Reproducir el sonido si la condición es verdadera
+                    System.out.println("true");
+                } else {
+                    sonidoFalse.play();
+                    System.out.println("false");// Reproducir el sonido si la condición es falsa
                 }
 
                 labelLetras.setText("");
