@@ -50,10 +50,6 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         font.getData().setScale(5);
         Gdx.input.setInputProcessor(stage);
 
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
-
-
         Table appBarTable = new Table();
         appBarTable.setWidth(stage.getWidth());
         appBarTable.setFillParent(true);
@@ -79,18 +75,14 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
         stage.addActor(appBarTable);
 
-
-
-
         listas = new Table();
         scrollPane = new ScrollPane(listas, game.skin); // Asignar tu skin al ScrollPane
-
         listas.setFillParent(true); // Para que el ScrollPane ocupe todo el espacio del Stage
 
-        scrollPane.getStyle().background = null;
-        scrollPane.setWidth(stage.getWidth());
-        scrollPane.setFadeScrollBars(true);
 
+        scrollPane.getStyle().background = null;
+        scrollPane.updateVisualScroll();
+        scrollPane.setFadeScrollBars(true);
         scrollPane.setScrollingDisabled(true, false); // Deshabilita el desplazamiento en la dirección x
         scrollPane.setForceScroll(false, true); // Fuerza el desplazamiento solo en la dirección y
         scrollPane.setScrollBarPositions(false,false);
@@ -99,10 +91,8 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         Table t = new Table();
         t.setFillParent(true);
         t.align(Align.top);
-        t.setWidth(stage.getWidth());
-        t.padTop(200);
-
-        t.add(scrollPane);
+        t.padTop(150);
+        t.add(scrollPane).width(stage.getWidth()).height(600);
 
         stage.addActor(t);
 
@@ -111,26 +101,34 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         inicializarLabelLetras();
     }
 
+
     private void actualizarTablaLetras() {
         // Limpiar la tabla antes de agregar nuevas palabras
         listas.clear();
 
-        // Obtener el índice de la última palabra añadida
-        int lastIndex = palabrasEnviadas.size() - 1;
-
-        // Calcular el índice inicial en función del número de palabras visibles
-        int startIndex = Math.max(lastIndex - NUMERO_PALABRAS_VISIBLES + 1, 0);
-        Label.LabelStyle labelStyle = game.skin.get(Label.LabelStyle.class);
-        // Agregar las palabras enviadas a la tabla
-        for (int i = lastIndex; i >= startIndex; i--) {
+        // Agregar nuevas palabras al principio de la lista de palabras
+        for (int i = palabrasEnviadas.size() - 1; i >= 0; i--) {
             String palabra = palabrasEnviadas.get(i);
-            Label label = new Label(palabra,labelStyle);
-            //label.setWrap(true);
-            label.setWidth(800);
-            label.setHeight(200);// Ancho fijo para evitar que el texto se expanda horizontalmente
-            listas.add(label).align(Align.center).pad(10).row();
+            Label label = new Label(palabra, new Label.LabelStyle(font, Color.BLACK));
+            if (i != palabrasEnviadas.size() - 1) { // Omitir el espacio en la primera palabra
+                listas.row(); // Agregar una nueva fila solo después de la primera palabra
+            }
+            listas.add(label).padTop(0).padBottom(20).row(); // Ajustar el padding superior e inferior
         }
+
+        // Obtener la altura total del contenido
+        float contenidoHeight = listas.getPrefHeight();
+
+        // Ajustar la altura del ScrollPane para asegurarse de que todo el contenido sea visible
+        scrollPane.setHeight(stage.getHeight() - 200); // Ajustar según tus necesidades
+
+        // Ajustar el scroll para que la parte superior del contenido sea visible
+        scrollPane.setScrollY(contenidoHeight);
     }
+
+
+
+
 
 
     private void inicializarRosco() {
@@ -199,7 +197,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         TextButton.TextButtonStyle enviarButtonStyle = new TextButton.TextButtonStyle(game.skin.get("default", TextButton.TextButtonStyle.class));
         enviarButtonStyle.up = new TextureRegionDrawable(game.skin.getRegion("default-round"));
         enviarButtonStyle.down = new TextureRegionDrawable(game.skin.getRegion("default-round-down"));
-        Texture backButtonTexture = new Texture("back_button.png");
+        Texture backButtonTexture = new Texture("send_button.png");
         ImageButton enviarButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(backButtonTexture)));
         //TextButton enviarButton = new TextButton("", enviarButtonStyle);
         enviarButton.setSize(200, 200);
