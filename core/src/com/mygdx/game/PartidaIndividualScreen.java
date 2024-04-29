@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -30,7 +31,8 @@ public class PartidaIndividualScreen extends ScreenAdapter {
     private float buttonSize = 120; // Tamaño inicial de los botones
     private Label labelLetras;
 
-    private GlyphLayout glyphLayout;
+
+    private int puntos = 0;
 
     private Table listas ;
     private ScrollPane scrollPane;
@@ -69,9 +71,9 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
 
         // Texto "Login" centrado
-        Label titleLabel = new Label("", new Label.LabelStyle(font, Color.BLACK));
+        Label titleLabel = new Label("puntos: "+ puntos, new Label.LabelStyle(font, Color.BLACK));
         appBarTable.add(backButton).size(100, 100).padRight(20);
-        appBarTable.add(titleLabel).expandX().center();
+        appBarTable.add(titleLabel).expandX().right().padRight(50);
 
         stage.addActor(appBarTable);
 
@@ -208,8 +210,21 @@ public class PartidaIndividualScreen extends ScreenAdapter {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 // Aquí puedes manejar la lógica cuando se hace clic en el botón "Enviar"
+
                 String palabra  = String.valueOf(labelLetras.getText());
-                palabrasEnviadas.add(palabra);
+
+
+                FileHandle fileHandle = Gdx.files.internal("DISC2-LP.txt");
+
+                String targetWord = palabra;
+
+                Boolean comprovar = Funciones.findWord(fileHandle, targetWord);
+
+                if (comprovar){
+                    palabrasEnviadas.add(palabra);
+                    System.out.println("aaaaaaaaaaa");
+                }
+
                 labelLetras.setText("");
                 actualizarTablaLetras();
                 System.out.println("Botón 'Enviar' presionado");
