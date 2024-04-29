@@ -233,6 +233,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         table.add(labelLetras).expand().center(); // Centrar la etiqueta en la tabla
         table.padBottom(275);
 
+
         stage.addActor(table); // Agregar la tabla al stage
     }
 
