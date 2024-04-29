@@ -231,7 +231,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         Table table = new Table();
         table.setFillParent(true); // La tabla ocupa todo el espacio del stage
         table.add(labelLetras).expand().center(); // Centrar la etiqueta en la tabla
-        table.padBottom(220);
+        table.padBottom(275);
 
         stage.addActor(table); // Agregar la tabla al stage
     }
