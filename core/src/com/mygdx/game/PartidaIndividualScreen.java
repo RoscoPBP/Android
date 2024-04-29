@@ -222,6 +222,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
                 if (comprovar){
                     palabrasEnviadas.add(palabra);
+                    puntos = puntos+ 10;
                     System.out.println("aaaaaaaaaaa");
                 }
 
