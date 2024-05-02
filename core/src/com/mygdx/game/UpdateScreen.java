@@ -12,9 +12,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.net.HttpStatus;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -133,13 +135,7 @@ public class UpdateScreen extends ScreenAdapter {
         stage.addActor(imagenTable);
 
 
-
-
-
-
-
         // Botón de enviar
-
 
         Table enviarTable = new Table();
         enviarTable.setWidth(stage.getWidth());
@@ -156,7 +152,7 @@ public class UpdateScreen extends ScreenAdapter {
                 String nombre = nombreTextField.getText();
                 String telefono = telefonoTextField.getText();
                 String email = emailTextField.getText();
-                Gdx.app.log("Solicitud HTTP", avatar);
+                //Gdx.app.log("Solicitud HTTP", avatar);
 
                 JsonValue json = new JsonValue(JsonValue.ValueType.object);
                 json.addChild("api_key", new JsonValue(apiKey));
@@ -184,6 +180,7 @@ public class UpdateScreen extends ScreenAdapter {
                                 guardarRespuestaEnJSON(apiKey, jsonData);
                                 Gdx.app.log("Solicitud HTTP", "La solicitud fue exitosa");
                                 cargarRespuestaJSON();
+                                showDialog("","usuario actulizado");
                             }else {
                                 Gdx.app.error("Solicitud HTTP", "status error");
 
@@ -233,12 +230,12 @@ public class UpdateScreen extends ScreenAdapter {
         Label telefonoLabel = new Label("Teléfono:", labelStyle);
         Label emailLabel = new Label("Email:", labelStyle);
         // Textfield para el nombre
-        nombreTextField = new TextField("", textFieldStyle);
+        nombreTextField = new TextField(name, textFieldStyle);
         nombreTextField.getStyle().background.setLeftWidth(10);
         nombreTextField.setSize(textFieldWidth, textFieldHeight);
 
         // Textfield para el teléfono
-        telefonoTextField = new TextField("", textFieldStyle);
+        telefonoTextField = new TextField(phoneNumber, textFieldStyle);
         telefonoTextField.getStyle().background.setLeftWidth(10);
         telefonoTextField.setSize(textFieldWidth, textFieldHeight);
 // Establecer el filtro de entrada para permitir solo caracteres de texto
@@ -250,7 +247,7 @@ public class UpdateScreen extends ScreenAdapter {
         });
 
         // Textfield para el correo electrónico
-        emailTextField = new TextField("", textFieldStyle);
+        emailTextField = new TextField(email, textFieldStyle);
         emailTextField.getStyle().background.setLeftWidth(10);
         emailTextField.setSize(textFieldWidth, textFieldHeight);
 
@@ -266,6 +263,49 @@ public class UpdateScreen extends ScreenAdapter {
         stage.addActor(table); // Agregar la tabla al stage
 
         Gdx.input.setInputProcessor(stage);
+    }
+
+    private void showDialog(String title, String message) {
+        Dialog dialog = new Dialog(title, game.skin) {
+            @Override
+            public float getPrefWidth() {
+                return 600; // Ancho deseado del diálogo
+            }
+
+            @Override
+            public float getPrefHeight() {
+                return 400; // Alto deseado del diálogo
+            }
+        };
+
+        // Configurar la fuente del título
+        Label titleLabel = dialog.getTitleLabel();
+        titleLabel.setFontScale(3);
+
+        // Configurar la fuente del encabezado
+        Label label = new Label(message, game.skin);
+        label.setFontScale(3); // Escalar la fuente del texto
+        dialog.text(label);
+
+        // Configurar el botón "OK" para volver a la pantalla inicial
+        TextButton okButton = new TextButton("OK", game.skin);
+        okButton.getLabel().setFontScale(2); // Escalar la fuente del botón
+        okButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // Cambiar a la pantalla del menú principal
+                game.setScreen(new MenuScreen(game));
+                dialog.hide(); // Ocultar el diálogo después de cambiar de pantalla
+            }
+        });
+
+        // Agregar el botón "OK" al diálogo y configurar su tamaño
+        dialog.button(okButton).pad(20); // Ajustar el tamaño según sea necesario
+
+        // Configurar el tamaño del diálogo
+        dialog.getContentTable().pad(20); // Añadir espacio entre el texto y los bordes del diálogo
+
+        dialog.show(stage);
     }
 
     @Override
@@ -293,11 +333,17 @@ public class UpdateScreen extends ScreenAdapter {
         if (jsonFile.exists()) {
             String jsonData = jsonFile.readString();
             JsonValue jsonResponse = new JsonReader().parse(jsonData);
-            apiKey = jsonResponse.getString("api_key");
-            name = jsonResponse.getString("name");
-            email = jsonResponse.getString("email");
-            phoneNumber = jsonResponse.getString("phone_number");
-            avatar = jsonResponse.getString("avatar");
+            apiKey = jsonResponse.getString("api_key", "");
+            name = jsonResponse.getString("name", "");
+            email = jsonResponse.getString("email", "");
+            phoneNumber = jsonResponse.getString("phone_number", "");
+
+            // Verificar si el campo "avatar" existe en el JSON y no es nulo
+            if (jsonResponse.has("avatar")) {
+                avatar = jsonResponse.getString("avatar");
+            } else {
+                avatar = ""; // Si no existe o es nulo, asignar una cadena vacía al avatar
+            }
         } else {
             apiKey = "";
             name = "";
@@ -306,6 +352,7 @@ public class UpdateScreen extends ScreenAdapter {
             avatar = "";
         }
     }
+
 
     private void guardarRespuestaEnJSON(String apiKey, String jsonData) {
         // Actualizar las variables con los nuevos valores del JSON

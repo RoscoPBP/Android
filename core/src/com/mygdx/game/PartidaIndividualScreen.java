@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import java.util.ArrayList;
@@ -26,12 +27,16 @@ import java.util.Random;
 public class PartidaIndividualScreen extends ScreenAdapter {
     private final MyGdxGame game;
     private Stage stage;
+
     private final BitmapFont font;
     private OrthographicCamera camera;
+
     private int numButtons = 10; // Número inicial de botones
     private float buttonSize = 120; // Tamaño inicial de los botones
     private Label labelLetras, titleLabel;
 
+    private float tiempoRestante = 5; // Tiempo restante inicial del temporizador en segundos
+    private Label labelTiempo;
 
     private int puntos = 0;
     Sound sonidoTrue = Gdx.audio.newSound(Gdx.files.internal("acierto.wav"));
@@ -40,7 +45,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
     private Table listas ;
     private ScrollPane scrollPane;
     private ArrayList<String> palabrasEnviadas = new ArrayList<>(); // Lista de palabras enviadas
-    private final int NUMERO_PALABRAS_VISIBLES = 4;
+
 
     private ArrayList<Character> vocales = new ArrayList<>(Arrays.asList('A', 'E', 'I', 'O', 'U'));
     private ArrayList<Character> consonantesMuyUsadas = new ArrayList<>(Arrays.asList('L', 'N', 'S', 'T', 'R'));
@@ -74,11 +79,52 @@ public class PartidaIndividualScreen extends ScreenAdapter {
 
 
         // Texto "Login" centrado
-        titleLabel = new Label("puntos: "+ puntos, new Label.LabelStyle(font, Color.BLACK));
+        titleLabel = new Label("puntos: "+ puntos, new Label.LabelStyle(font, Color.WHITE));
         appBarTable.add(backButton).size(100, 100).padRight(20);
         appBarTable.add(titleLabel).expandX().right().padRight(50);
 
         stage.addActor(appBarTable);
+
+
+        labelTiempo = new Label("", new Label.LabelStyle(font, Color.WHITE));
+        Table tableTiempo = new Table();
+        tableTiempo.setFillParent(true);
+        tableTiempo.top().pad(20);
+        tableTiempo.add(labelTiempo);
+
+        stage.addActor(tableTiempo);
+
+        // Crear y programar el temporizador
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                tiempoRestante -= 1; // Reducir el tiempo restante en 1 segundo
+                if (tiempoRestante <= 0) {
+                    // El temporizador ha terminado, aquí puedes agregar la lógica para manejarlo
+                    Gdx.app.log("Timer", "¡Tiempo terminado!");
+
+                    // Mostrar un mensaje de fin de partida
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            showDialog("", "Fin de partida \n puntuacion");
+                        }
+                    });
+
+                    // Cambiar a la pantalla del menú principal
+                    /**
+                    Gdx.app.postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            game.setScreen(new MenuScreen(game));
+                        }
+                    });
+                     **/
+                }
+            }
+        }, 1, 1);
+
+
 
         listas = new Table();
         scrollPane = new ScrollPane(listas, game.skin); // Asignar tu skin al ScrollPane
@@ -106,6 +152,52 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         inicializarLabelLetras();
     }
 
+    private void showDialog(String title, String message) {
+        Dialog dialog = new Dialog(title, game.skin) {
+            @Override
+            public float getPrefWidth() {
+                return 600; // Ancho deseado del diálogo
+            }
+
+            @Override
+            public float getPrefHeight() {
+                return 400; // Alto deseado del diálogo
+            }
+        };
+
+        // Configurar la fuente del título
+        Label titleLabel = dialog.getTitleLabel();
+        titleLabel.setFontScale(2);
+
+        // Configurar la fuente del encabezado
+        Label label = new Label(message, game.skin);
+        label.setFontScale(2); // Escalar la fuente del texto
+        dialog.text(label);
+
+        // Configurar el botón "OK" para volver a la pantalla inicial
+        TextButton okButton = new TextButton("OK", game.skin);
+        okButton.getLabel().setFontScale(2); // Escalar la fuente del botón
+        okButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // Cambiar a la pantalla del menú principal
+                game.setScreen(new MenuScreen(game));
+                dialog.hide(); // Ocultar el diálogo después de cambiar de pantalla
+            }
+        });
+
+        // Agregar el botón "OK" al diálogo y configurar su tamaño
+        dialog.button(okButton).pad(20); // Ajustar el tamaño según sea necesario
+
+        // Configurar el tamaño del diálogo
+        dialog.getContentTable().pad(20); // Añadir espacio entre el texto y los bordes del diálogo
+
+        dialog.show(stage);
+    }
+
+
+
+
 
     private void actualizarTablaLetras() {
         // Limpiar la tabla antes de agregar nuevas palabras
@@ -114,7 +206,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         // Agregar nuevas palabras al principio de la lista de palabras
         for (int i = palabrasEnviadas.size() - 1; i >= 0; i--) {
             String palabra = palabrasEnviadas.get(i);
-            Label label = new Label(palabra, new Label.LabelStyle(font, Color.BLACK));
+            Label label = new Label(palabra, new Label.LabelStyle(font, Color.WHITE));
             if (i != palabrasEnviadas.size() - 1) { // Omitir el espacio en la primera palabra
                 listas.row(); // Agregar una nueva fila solo después de la primera palabra
             }
@@ -130,10 +222,6 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         // Ajustar el scroll para que la parte superior del contenido sea visible
         scrollPane.setScrollY(contenidoHeight);
     }
-
-
-
-
 
 
     private void inicializarRosco() {
@@ -196,8 +284,6 @@ public class PartidaIndividualScreen extends ScreenAdapter {
             stage.addActor(button);
         }
 
-
-
     // Agregar el botón "Enviar" dentro del rosco
         TextButton.TextButtonStyle enviarButtonStyle = new TextButton.TextButtonStyle(game.skin.get("default", TextButton.TextButtonStyle.class));
         enviarButtonStyle.up = new TextureRegionDrawable(game.skin.getRegion("default-round"));
@@ -239,16 +325,14 @@ public class PartidaIndividualScreen extends ScreenAdapter {
                 System.out.println("Botón 'Enviar' presionado");
             }
         });
-
         stage.addActor(enviarButton);
     }
-
 
     private void inicializarLabelLetras() {
         // Crear la etiqueta de texto para mostrar las letras de los botones pulsados
         BitmapFont font = new BitmapFont();
         font.getData().setScale(5); // Aumentar el tamaño de la fuente
-        Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.BLACK);
+        Label.LabelStyle labelStyle = new Label.LabelStyle(font, Color.WHITE);
         labelLetras = new Label("", labelStyle);
 
         // Crear una tabla para centrar la etiqueta en la pantalla
@@ -256,18 +340,13 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         table.setFillParent(true); // La tabla ocupa todo el espacio del stage
         table.add(labelLetras).expand().center(); // Centrar la etiqueta en la tabla
         table.padBottom(275);
-
-
         stage.addActor(table); // Agregar la tabla al stage
     }
 
-
     private String obtenerLetraAleatoria() {
         char letra;
-
         // Generar un número aleatorio entre 0 y 1 (inclusive)
         int randomType = random.nextInt(2); // 0 o 1
-
         // Si el número aleatorio es 1 o quedan menos de 2 vocales, elegir una consonante
         if (randomType == 1 || vocales.size() < 2) {
             // Elegir entre consonantes muy usadas y poco usadas
@@ -284,12 +363,10 @@ public class PartidaIndividualScreen extends ScreenAdapter {
             int index = random.nextInt(vocales.size());
             letra = vocales.remove(index);
         }
-
         return String.valueOf(letra);
     }
 
-    private Color colorFromHex(long hex)
-    {
+    private Color colorFromHex(long hex) {
         float a = (hex & 0xFF000000L) >> 24;
         float r = (hex & 0xFF0000L) >> 16;
         float g = (hex & 0xFF00L) >> 8;
@@ -298,8 +375,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         return new Color(r/255f, g/255f, b/255f, a/255f);
     }
 
-    private Color colorFromHexString(String s)
-    {
+    private Color colorFromHexString(String s) {
         // Eliminar el signo "#" si está presente
         if(s.startsWith("#"))
             s = s.substring(1);
@@ -319,6 +395,8 @@ public class PartidaIndividualScreen extends ScreenAdapter {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 1, 1); // Cambiar a azul
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        labelTiempo.setText(tiempoRestante + "s");
 
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();

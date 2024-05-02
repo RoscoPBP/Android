@@ -11,9 +11,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.net.HttpStatus;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -44,7 +46,7 @@ public class PerfilScreen extends ScreenAdapter {
     private TextField nombreTextField;
     private TextField telefonoTextField;
     private TextField emailTextField;
-    private String avatar;
+    private String avatar = "";
 
     public PerfilScreen(MyGdxGame game) {
         this.game = game;
@@ -176,6 +178,7 @@ public class PerfilScreen extends ScreenAdapter {
                                 String apikey = dataString.getString("api_key");
                                 guardarRespuestaEnJSON(apikey, jsonData);
                                 Gdx.app.log("Solicitud HTTP", "La solicitud fue exitosa");
+                                showDialog("", "usuario añadido");
 
                             }else {
                                 Gdx.app.error("Solicitud HTTP", "status error");
@@ -261,6 +264,48 @@ public class PerfilScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(stage);
     }
 
+    private void showDialog(String title, String message) {
+        Dialog dialog = new Dialog(title, game.skin) {
+            @Override
+            public float getPrefWidth() {
+                return 600; // Ancho deseado del diálogo
+            }
+
+            @Override
+            public float getPrefHeight() {
+                return 400; // Alto deseado del diálogo
+            }
+        };
+
+        // Configurar la fuente del título
+        Label titleLabel = dialog.getTitleLabel();
+        titleLabel.setFontScale(3);
+
+        // Configurar la fuente del encabezado
+        Label label = new Label(message, game.skin);
+        label.setFontScale(3); // Escalar la fuente del texto
+        dialog.text(label);
+
+        // Configurar el botón "OK" para volver a la pantalla inicial
+        TextButton okButton = new TextButton("OK", game.skin);
+        okButton.getLabel().setFontScale(2); // Escalar la fuente del botón
+        okButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // Cambiar a la pantalla del menú principal
+                game.setScreen(new MenuScreen(game));
+                dialog.hide(); // Ocultar el diálogo después de cambiar de pantalla
+            }
+        });
+
+        // Agregar el botón "OK" al diálogo y configurar su tamaño
+        dialog.button(okButton).pad(20); // Ajustar el tamaño según sea necesario
+
+        // Configurar el tamaño del diálogo
+        dialog.getContentTable().pad(20); // Añadir espacio entre el texto y los bordes del diálogo
+
+        dialog.show(stage);
+    }
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 1, 1); // Cambiar a azul
@@ -287,6 +332,8 @@ public class PerfilScreen extends ScreenAdapter {
         String name = Data.getString("name");
         String email = Data.getString("email");
         String Phone = Data.getString("phone_number");
+
+
 
         JsonValue jsonToSave = new JsonValue(JsonValue.ValueType.object);
         jsonToSave.addChild("api_key", new JsonValue(apiKey));

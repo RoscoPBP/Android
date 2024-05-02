@@ -1,73 +1,89 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Net;
-import com.badlogic.gdx.net.HttpRequestBuilder;
-import com.badlogic.gdx.Net.HttpResponseListener;
-import com.badlogic.gdx.net.HttpStatus;
-import com.badlogic.gdx.net.Socket;
-import com.badlogic.gdx.net.SocketHints;
-import com.badlogic.gdx.utils.Disposable;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.badlogic.gdx.files.FileHandle;
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class NetworkManager implements Disposable {
-    private ExecutorService executorService;
+import java.net.URISyntaxException;
+
+public class NetworkManager {
+    private String serverUrl = "https://roscodrom4.ieti.site";
+    private String apiKey = "";
+    private String nickname = "";
+
+    private Socket socket;
+    private boolean alta = false;
+    private boolean ready = false;
 
     public NetworkManager() {
-        executorService = Executors.newFixedThreadPool(5);
+        cargarApiKey();
+        connectToServer();
     }
 
-    // Método para hacer una solicitud HTTP GET
-    public void makeHttpGetRequest(String url, HttpResponseListener listener) {
-        HttpRequestBuilder builder = new HttpRequestBuilder();
-        Net.HttpRequest httpRequest = builder.newRequest().method(Net.HttpMethods.GET).url(url).build();
-        Gdx.net.sendHttpRequest(httpRequest, listener);
+    public void cargarApiKey(){
+        try {
+            FileHandle jsonFile = Gdx.files.local("respuesta.json");
+
+            // Leer el contenido del archivo JSON
+            String contenido = jsonFile.readString();
+
+            // Crear un objeto JSON a partir del contenido
+            JSONObject jsonObject = new JSONObject(contenido);
+
+            // Obtener el valor de api_key del objeto JSON
+            apiKey = jsonObject.getString("api_key");
+            nickname = jsonObject.getString("name");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    // Método para hacer una solicitud HTTP POST
-    public void makeHttpPostRequest(String url, String postData, HttpResponseListener listener) {
-        HttpRequestBuilder builder = new HttpRequestBuilder();
-        Net.HttpRequest httpRequest = builder.newRequest().method(Net.HttpMethods.POST).url(url).content(postData).build();
-        Gdx.net.sendHttpRequest(httpRequest, listener);
-    }
+    public void connectToServer() {
+        try {
+            socket = IO.socket(serverUrl);
+            socket.connect();
 
-    // Método para conectar a un servidor WebSocket
-    public void connectToWebSocket(String url, WebSocketListener listener) {
-        executorService.execute(() -> {
-            try {
-                URI uri = new URI(url);
-                SocketHints hints = new SocketHints();
-                Socket socket = Gdx.net.newClientSocket(Net.Protocol.TCP, uri.getHost(), uri.getPort(), hints);
-                listener.onConnected(socket);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    listener.onMessageReceived(line);
+            socket.on(Socket.EVENT_CONNECT, args -> {
+                System.out.println("Conectado al servidor");
+                socket.emit("ALTA", "ALTA=" + nickname + ";API_KEY=" + apiKey);
+            }).on("ALTA", args -> {
+                JSONObject json = (JSONObject) args[0];
+                try {
+                    alta = json.getBoolean("alta");
+                    System.out.println(alta);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (URISyntaxException | IOException e) {
-                e.printStackTrace();
-                listener.onConnectionError(e);
-            }
-        });
+            }).on("INICI_PARTIDA", args -> {
+                System.out.println("sssssssssssssssssssss");
+                JSONObject json = (JSONObject) args[0];
+
+
+            }).on("Palabra", args -> {
+                JSONObject json = (JSONObject) args[0];
+                System.out.println(json);
+            });
+
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
-    // Interfaz para manejar eventos del WebSocket
-    public interface WebSocketListener {
-        void onConnected(Socket socket);
-        void onMessageReceived(String message);
-        void onConnectionError(Throwable throwable);
+    public void disconnectFromServer() {
+        if (socket != null && socket.connected()) {
+            socket.disconnect();
+        }
     }
 
-    @Override
-    public void dispose() {
-        executorService.shutdown();
+    public boolean isAlta() {
+        return alta;
+    }
+
+    public boolean isReady() {
+        return ready;
     }
 }
