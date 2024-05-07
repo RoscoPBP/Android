@@ -98,8 +98,10 @@ public class PartidaIndividualScreen extends ScreenAdapter {
         Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
-                tiempoRestante -= 1; // Reducir el tiempo restante en 1 segundo
+                if (tiempoRestante>0){
+                tiempoRestante -= 1;} // Reducir el tiempo restante en 1 segundo
                 if (tiempoRestante <= 0) {
+
                     // El temporizador ha terminado, aquí puedes agregar la lógica para manejarlo
                     Gdx.app.log("Timer", "¡Tiempo terminado!");
 
@@ -107,19 +109,11 @@ public class PartidaIndividualScreen extends ScreenAdapter {
                     Gdx.app.postRunnable(new Runnable() {
                         @Override
                         public void run() {
-                            showDialog("", "Fin de partida \n puntuacion");
+                            showDialog("", "Fin de partida \n puntuacion = "+ puntos);
                         }
                     });
 
-                    // Cambiar a la pantalla del menú principal
-                    /**
-                    Gdx.app.postRunnable(new Runnable() {
-                        @Override
-                        public void run() {
-                            game.setScreen(new MenuScreen(game));
-                        }
-                    });
-                     **/
+                    this.cancel();
                 }
             }
         }, 1, 1);
@@ -182,7 +176,7 @@ public class PartidaIndividualScreen extends ScreenAdapter {
             public void clicked(InputEvent event, float x, float y) {
                 // Cambiar a la pantalla del menú principal
                 game.setScreen(new MenuScreen(game));
-                dialog.hide(); // Ocultar el diálogo después de cambiar de pantalla
+                dialog.remove(); // Ocultar el diálogo después de cambiar de pantalla
             }
         });
 
