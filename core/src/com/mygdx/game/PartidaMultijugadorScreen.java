@@ -50,7 +50,7 @@ public class PartidaMultijugadorScreen extends ScreenAdapter {
     private String serverUrl = "https://roscodrom4.ieti.site";
     private String apiKey = "";
     private String nickname = "";
-    Boolean comprovar = false;
+
 
     private int numButtons = 10; // Número inicial de botones
     private float buttonSize = 120; // Tamaño inicial de los botones
@@ -58,7 +58,7 @@ public class PartidaMultijugadorScreen extends ScreenAdapter {
     private final CountDownLatch latch = new CountDownLatch(1);
 
     private  String letters;
-    private float tiempoRestante = 5; // Tiempo restante inicial del temporizador en segundos
+    private float tiempoRestante = 60; // Tiempo restante inicial del temporizador en segundos
     private Label labelTiempo;
     private Label espera;
 
@@ -71,15 +71,12 @@ public class PartidaMultijugadorScreen extends ScreenAdapter {
     private ArrayList<String> palabrasEnviadas = new ArrayList<>(); // Lista de palabras enviadas
 
     boolean alta = false;
-    boolean ready = false;
+
     private TextButton.TextButtonStyle buttonStyle ;
     private  Texture sendButtonTexture;
 
     private ArrayList<Character> lettersList = new ArrayList<>();
-    private ArrayList<Character> vocales = new ArrayList<>(Arrays.asList('A', 'E', 'I', 'O', 'U'));
-    private ArrayList<Character> consonantesMuyUsadas = new ArrayList<>(Arrays.asList('L', 'N', 'S', 'T', 'R'));
-    private ArrayList<Character> consonantesPocoUsadas = new ArrayList<>(Arrays.asList('B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'P', 'Q', 'V', 'W', 'X', 'Y', 'Z'));
-    private Random random = new Random();
+
 
     public PartidaMultijugadorScreen(MyGdxGame game) {
         this.game = game;
@@ -120,34 +117,53 @@ public class PartidaMultijugadorScreen extends ScreenAdapter {
                     e.printStackTrace();
                 }
             }).on("PARAULA_OK", args -> {
+
                 JSONObject json = (JSONObject) args[0];
                 System.out.println(json);
+
                 try {
-                    puntos+= json.getInt("value");
-                    titleLabel.setText("puntos: " + puntos);
+                    Boolean comprovar = json.getBoolean("wordExists");
+                    if (comprovar) {
+                        puntos+= json.getInt("value");
+                        titleLabel.setText("puntos: " + puntos);
+                        // Reproducir el sonido si la condición es verdadera
+                        System.out.println("true");
+                    } else {
+                        sonidoFalse.play();
+                        System.out.println("false");// Reproducir el sonido si la condición es falsa
+                    }
+                    labelLetras.setText("");
+                    actualizarTablaLetras();
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
 
             }).on("PARAULA_ACERTADA", args -> {
-                JSONObject json = (JSONObject) args[0];
-                System.out.println(json);
+                System.out.println(args[0]);
+                String JsonString  = (String) args[0];
                 try {
+                    JSONObject json = new JSONObject(JsonString);
+                    System.out.println(json);
                     String palabra = json.getString("paraula");
-                    palabrasEnviadas.add(palabra);
+                    if (!palabrasEnviadas.contains(palabra)) {
+                        palabrasEnviadas.add(palabra);
+                    }
+                    actualizarTablaLetras();
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
 
             }).on("FI_PARTIDA", args -> {
                 JSONObject json = (JSONObject) args[0];
-                System.out.println(json);
-                showDialog("","fin");
+                String jsonString = json.toString();
+                System.out.println(jsonString);
+                showDialog("",jsonString);
                 Timer.schedule(new Timer.Task() {
                     @Override
                     public void run() {
                         // Pasados 30 segundos, cambiar de pantalla
                         game.setScreen(new MenuScreen(game));
+                        socket.disconnect();
                         dispose();
                     }
                 }, 30);
@@ -433,20 +449,8 @@ public class PartidaMultijugadorScreen extends ScreenAdapter {
 
                 socket.emit("PARAULA", "PARAULA=" + palabra + ";API_KEY=" + apiKey);
 
-                Boolean comprovar = Funciones.findWord(fileHandle, targetWord);
 
-                if (comprovar) {
-                    palabrasEnviadas.add(palabra);
 
-                    sonidoTrue.play(); // Reproducir el sonido si la condición es verdadera
-                    System.out.println("true");
-                } else {
-                    sonidoFalse.play();
-                    System.out.println("false");// Reproducir el sonido si la condición es falsa
-                }
-
-                labelLetras.setText("");
-                actualizarTablaLetras();
                 System.out.println("Botón 'Enviar' presionado");
             }
         });
